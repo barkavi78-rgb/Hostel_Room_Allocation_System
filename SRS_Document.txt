@@ -1,0 +1,49 @@
+
+HOSTEL ROOM ALLOCATION AND STUDENT ACCOMMODATION ANALYSIS SYSTEM
+
+1. INTRODUCTION
+
+The Hostel Room Allocation and Student Accommodation Analysis System is a software application used to manage hostel students, rooms, room allocation and fee details.
+
+2. PROBLEM STATEMENT
+
+Managing hostel room allocation manually is difficult. It may lead to errors in student records, room availability and fee management.
+
+3. OBJECTIVES
+
+- To maintain student details.
+- To manage hostel room details.
+- To allocate rooms to students.
+- To manage hostel fee details.
+- To analyze room occupancy and fee payment details.
+
+4. FUNCTIONAL REQUIREMENTS
+
+- Add and view student details.
+- Add and view room details.
+- Allocate rooms to students.
+- Check room availability.
+- Checkout students.
+- Add and view fee details.
+- Generate analysis and charts.
+
+5. NON-FUNCTIONAL REQUIREMENTS
+
+- The system should be user-friendly.
+- Data should be stored securely.
+- The system should provide accurate results.
+- The system should respond quickly.
+
+6. HARDWARE REQUIREMENTS
+
+- Computer or Laptop
+- Minimum 8 GB RAM
+- Keyboard and Mouse
+
+7. SOFTWARE REQUIREMENTS
+
+- Operating System: Windows
+- Programming Language: Java and Python
+- Database: MySQL
+- IDE: Visual Studio Code
+- Python Libraries: Pandas and Matplotlib
