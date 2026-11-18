@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Management</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .fee-form {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+        }
+
+        .fee-form label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .fee-form input,
+        .fee-form select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .fee-form button {
+            margin-top: 20px;
+            padding: 12px 22px;
+            background: #172554;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .fee-form button:hover {
+            background: #263b78;
+        }
+
+        #message {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .fee-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 25px;
+        }
+
+        .fee-table th,
+        .fee-table td {
+            border: 1px solid #ddd;
+            padding: 14px;
+            text-align: left;
+        }
+
+        .fee-table th {
+            background-color: #172554;
+            color: white;
+        }
+
+        .fee-table tr:nth-child(even) {
+            background-color: #f2f5fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>HOSTEL MS</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="rooms.html">Rooms</a>
+        <a href="allocation.html">Allocation</a>
+        <a href="fees.html">Fees</a>
+    </div>
+
+    <div class="main">
+
+        <h1>Fee Management</h1>
+        <p>Student Fee Details</p>
+
+        <h2>Add New Fee</h2>
+
+        <form class="fee-form" id="feeForm">
+
+            <label for="studentId">Select Student</label>
+            <select id="studentId" required>
+                <option value="">Loading students...</option>
+            </select>
+
+            <label for="amount">Fee Amount</label>
+            <input
+                type="number"
+                id="amount"
+                min="0.01"
+                step="0.01"
+                placeholder="Enter fee amount"
+                required
+            >
+
+            <label for="status">Payment Status</label>
+            <select id="status" required>
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+            </select>
+
+            <button type="submit">Save Fee</button>
+
+            <p id="message"></p>
+
+        </form>
+
+        <h2>All Fee Details</h2>
+
+        <table class="fee-table">
+            <thead>
+                <tr>
+                    <th>Fee ID</th>
+                    <th>Student Name</th>
+                    <th>Amount</th>
+                    <th>Payment Date</th>
+                    <th>Payment Status</th>
+                </tr>
+            </thead>
+
+            <tbody id="feeTable">
+                <tr>
+                    <td colspan="5">Loading fee details...</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+
+        // LOAD STUDENTS INTO DROPDOWN
+        function loadStudents() {
+
+            fetch("http://localhost:8080/api/students")
+                .then(response => response.json())
+                .then(data => {
+
+                    const dropdown = document.getElementById("studentId");
+                    dropdown.innerHTML = '<option value="">Select Student</option>';
+
+                    if (!Array.isArray(data)) {
+                        throw new Error("Unable to load students");
+                    }
+
+                    data.forEach(student => {
+
+                        const option = document.createElement("option");
+
+                        option.value = student.id;
+                        option.textContent = student.name;
+
+                        dropdown.appendChild(option);
+                    });
+
+                })
+                .catch(error => {
+                    document.getElementById("studentId").innerHTML =
+                        '<option value="">Unable to load students</option>';
+
+                    console.error(error);
+                });
+        }
+
+
+        // LOAD FEE DETAILS
+        function loadFees() {
+
+            fetch("http://localhost:8080/api/fees")
+                .then(response => response.json())
+                .then(data => {
+
+                    const table = document.getElementById("feeTable");
+                    table.innerHTML = "";
+
+                    if (!Array.isArray(data) || data.length === 0) {
+
+                        table.innerHTML =
+                            '<tr><td colspan="5">No fee records found</td></tr>';
+
+                        return;
+                    }
+
+                    data.forEach(fee => {
+
+                        const row = document.createElement("tr");
+
+                        [
+                            fee.id,
+                            fee.student,
+                            fee.amount,
+                            fee.date,
+                            fee.status
+                        ].forEach(value => {
+
+                            const cell = document.createElement("td");
+                            cell.textContent = value ?? "";
+                            row.appendChild(cell);
+
+                        });
+
+                        table.appendChild(row);
+
+                    });
+
+                })
+                .catch(error => {
+
+                    document.getElementById("feeTable").innerHTML =
+                        '<tr><td colspan="5">Unable to load fee details</td></tr>';
+
+                    console.error(error);
+                });
+        }
+
+
+        // ADD NEW FEE
+        document.getElementById("feeForm").addEventListener("submit", function(event) {
+
+            event.preventDefault();
+
+            const studentId = document.getElementById("studentId").value;
+            const amount = document.getElementById("amount").value;
+            const status = document.getElementById("status").value;
+
+            const message = document.getElementById("message");
+
+            const formData = new URLSearchParams();
+
+            formData.append("studentId", studentId);
+            formData.append("amount", amount);
+            formData.append("status", status);
+
+            fetch("http://localhost:8080/api/add-fee", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                message.style.color = "green";
+                message.textContent = "Fee Added Successfully!";
+
+                document.getElementById("feeForm").reset();
+
+                loadFees();
+
+            })
+
+            .catch(error => {
+
+                message.style.color = "red";
+                message.textContent = "Fee Addition Failed!";
+
+                console.error(error);
+            });
+
+        });
+
+
+        // INITIAL LOAD
+        loadStudents();
+        loadFees();
+
+    </script>
+
+</body>
+</html>

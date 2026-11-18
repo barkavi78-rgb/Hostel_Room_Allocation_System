@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - Hostel Management</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 25px;
+        }
+
+        .student-table th,
+        .student-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .student-table th {
+            background: #172554;
+            color: white;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .add-form {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 25px;
+        }
+
+        .add-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .add-form button {
+            background: #172554;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>HOSTEL MS</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="rooms.html">Rooms</a>
+        <a href="allocation.html">Allocation</a>
+        <a href="fees.html">Fees</a>
+    </div>
+
+    <div class="main">
+
+        <h1>Student Management</h1>
+        <p>Manage registered student details</p>
+
+        <div class="add-form">
+            <h2>Add New Student</h2>
+
+            <form id="studentForm">
+
+                <label>Student Name</label>
+                <input type="text" name="name" required>
+
+                <label>Department</label>
+                <input type="text" name="department" required>
+
+                <label>Year of Study</label>
+                <input type="number" name="year" min="1" max="4" required>
+
+                <label>Phone Number</label>
+                <input type="tel" name="phone" required>
+
+                <label>Email</label>
+                <input type="email" name="email" required>
+
+                <button type="submit">Save Student</button>
+
+            </form>
+
+            <p id="message"></p>
+        </div>
+
+        <h2>Student Details</h2>
+
+        <div class="table-container">
+            <table class="student-table">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Year</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+
+                <tbody id="studentData">
+                    <tr>
+                        <td colspan="6">Loading students...</td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+
+        async function loadStudents() {
+
+            const table = document.getElementById("studentData");
+
+            try {
+
+                const response = await fetch(
+                    "http://localhost:8080/api/students"
+                );
+
+                const students = await response.json();
+
+                if (!response.ok || !Array.isArray(students)) {
+                    throw new Error("Unable to load students");
+                }
+
+                table.innerHTML = "";
+
+                if (students.length === 0) {
+                    table.innerHTML =
+                        '<tr><td colspan="6">No students found</td></tr>';
+                    return;
+                }
+
+                students.forEach(student => {
+
+                    const row = document.createElement("tr");
+
+                    [
+                        student.id,
+                        student.name,
+                        student.department,
+                        student.year,
+                        student.phone,
+                        student.email
+                    ].forEach(value => {
+
+                        const cell = document.createElement("td");
+                        cell.textContent = value ?? "";
+                        row.appendChild(cell);
+
+                    });
+
+                    table.appendChild(row);
+
+                });
+
+            } catch (error) {
+
+                table.innerHTML =
+                    '<tr><td colspan="6">Unable to load students</td></tr>';
+
+            }
+        }
+
+        document.getElementById("studentForm")
+            .addEventListener("submit", async function(event) {
+
+                event.preventDefault();
+
+                const message = document.getElementById("message");
+                const formData = new FormData(this);
+
+                const data = new URLSearchParams(formData);
+
+                try {
+
+                    const response = await fetch(
+                        "http://localhost:8080/api/add-student",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            body: data.toString()
+                        }
+                    );
+
+                    const result = await response.json();
+
+                    if (!response.ok || result.error) {
+                        throw new Error(result.error || "Unable to add student");
+                    }
+
+                    message.textContent = "Student added successfully!";
+                    message.style.color = "green";
+
+                    this.reset();
+
+                    await loadStudents();
+
+                } catch (error) {
+
+                    message.textContent = error.message;
+                    message.style.color = "red";
+
+                }
+
+            });
+
+        loadStudents();
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>HOSTEL MS</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="rooms.html">Rooms</a>
+        <a href="allocation.html">Allocation</a>
+        <a href="fees.html">Fees</a>
+    </div>
+
+    <div class="main">
+        <h1>Hostel Management Dashboard</h1>
+        <p>Welcome to Hostel Room Allocation System</p>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Students</h3>
+                <h2 id="students">Loading...</h2>
+            </div>
+
+            <div class="card">
+                <h3>Total Rooms</h3>
+                <h2 id="rooms">Loading...</h2>
+            </div>
+
+            <div class="card">
+                <h3>Occupied Rooms</h3>
+                <h2 id="occupied">Loading...</h2>
+            </div>
+
+            <div class="card">
+                <h3>Available Rooms</h3>
+                <h2 id="available">Loading...</h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboard() {
+            try {
+                const response = await fetch(
+                    "http://localhost:8080/api/dashboard"
+                );
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                document.getElementById("students").textContent = data.students;
+                document.getElementById("rooms").textContent = data.rooms;
+                document.getElementById("occupied").textContent = data.occupied;
+                document.getElementById("available").textContent = data.available;
+
+            } catch (error) {
+                console.error("Dashboard error:", error);
+
+                document.getElementById("students").textContent = "Error";
+                document.getElementById("rooms").textContent = "Error";
+                document.getElementById("occupied").textContent = "Error";
+                document.getElementById("available").textContent = "Error";
+            }
+        }
+
+        loadDashboard();
+    </script>
+
+</body>
+</html>

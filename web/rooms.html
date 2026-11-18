@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rooms - Hostel Management</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .room-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 25px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .room-table th,
+        .room-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .room-table th {
+            background: #172554;
+            color: white;
+        }
+
+        .room-table tr:hover {
+            background: #f1f5f9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>HOSTEL MS</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="rooms.html">Rooms</a>
+        <a href="allocation.html">Allocation</a>
+        <a href="fees.html">Fees</a>
+    </div>
+
+    <div class="main">
+        <h1>Room Management</h1>
+        <p>View all hostel room details</p>
+
+        <div class="table-container">
+            <table class="room-table">
+                <thead>
+                    <tr>
+                        <th>Room ID</th>
+                        <th>Room Number</th>
+                        <th>Room Type</th>
+                        <th>Capacity</th>
+                        <th>Monthly Fee</th>
+                    </tr>
+                </thead>
+
+                <tbody id="roomData">
+                    <tr>
+                        <td colspan="5">Loading rooms...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadRooms() {
+            const table = document.getElementById("roomData");
+
+            try {
+                const response = await fetch(
+                    "http://localhost:8080/api/rooms"
+                );
+
+                const rooms = await response.json();
+
+                if (!response.ok || !Array.isArray(rooms)) {
+                    throw new Error("Unable to load rooms");
+                }
+
+                table.innerHTML = "";
+
+                if (rooms.length === 0) {
+                    table.innerHTML =
+                        '<tr><td colspan="5">No rooms found</td></tr>';
+                    return;
+                }
+
+                rooms.forEach(room => {
+                    const row = document.createElement("tr");
+
+                    [
+                        room.id,
+                        room.number,
+                        room.type,
+                        room.capacity,
+                        "₹" + Number(room.fee).toFixed(2)
+                    ].forEach(value => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value ?? "";
+                        row.appendChild(cell);
+                    });
+
+                    table.appendChild(row);
+                });
+
+            } catch (error) {
+                table.innerHTML =
+                    '<tr><td colspan="5">Unable to load rooms</td></tr>';
+            }
+        }
+
+        loadRooms();
+    </script>
+
+</body>
+</html>

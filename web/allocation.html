@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Allocation - Hostel Management</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .allocation-form {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        .allocation-form label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .allocation-form input,
+        .allocation-form select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .allocation-form button {
+            margin-top: 20px;
+            padding: 12px 22px;
+            background: #172554;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .allocation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 25px;
+        }
+
+        .allocation-table th,
+        .allocation-table td {
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #eee;
+        }
+
+        .allocation-table th {
+            background: #172554;
+            color: white;
+        }
+
+        .allocation-table tr:hover {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>HOSTEL MS</h2>
+        <a href="index.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="rooms.html">Rooms</a>
+        <a href="allocation.html">Allocation</a>
+        <a href="fees.html">Fees</a>
+    </div>
+
+    <div class="main">
+
+        <h1>Room Allocation Management</h1>
+        <p>Manage student room allocations</p>
+
+        <h2>Add New Allocation</h2>
+
+        <form class="allocation-form" id="allocationForm">
+
+            <label for="studentId">Select Student</label>
+            <select id="studentId" required>
+                <option value="">Loading students...</option>
+            </select>
+
+            <label for="roomId">Select Room</label>
+            <select id="roomId" required>
+                <option value="">Loading rooms...</option>
+            </select>
+
+            <label for="allocationDate">Allocation Date</label>
+            <input type="date" id="allocationDate" required>
+
+            <label for="checkoutDate">Checkout Date</label>
+            <input type="date" id="checkoutDate">
+
+            <label for="status">Allocation Status</label>
+            <select id="status" required>
+                <option value="Active">Active</option>
+                <option value="Completed">Completed</option>
+            </select>
+
+            <button type="submit">Save Allocation</button>
+
+            <p id="message"></p>
+
+        </form>
+
+        <h2>All Allocation Details</h2>
+
+        <div class="table-container">
+            <table class="allocation-table">
+                <thead>
+                    <tr>
+                        <th>Allocation ID</th>
+                        <th>Student Name</th>
+                        <th>Room Number</th>
+                        <th>Allocation Date</th>
+                        <th>Checkout Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="allocationData">
+                    <tr>
+                        <td colspan="6">Loading allocations...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+
+        // LOAD STUDENTS
+        function loadStudents() {
+
+            fetch("http://localhost:8080/api/students")
+                .then(response => response.json())
+                .then(data => {
+
+                    const dropdown = document.getElementById("studentId");
+                    dropdown.innerHTML =
+                        '<option value="">Select Student</option>';
+
+                    if (!Array.isArray(data)) {
+                        throw new Error("Unable to load students");
+                    }
+
+                    data.forEach(student => {
+
+                        const option = document.createElement("option");
+                        option.value = student.id;
+                        option.textContent = student.name;
+
+                        dropdown.appendChild(option);
+                    });
+
+                })
+                .catch(error => {
+                    document.getElementById("studentId").innerHTML =
+                        '<option value="">Unable to load students</option>';
+                    console.error(error);
+                });
+        }
+
+
+        // LOAD ROOMS
+        function loadRooms() {
+
+            fetch("http://localhost:8080/api/rooms")
+                .then(response => response.json())
+                .then(data => {
+
+                    const dropdown = document.getElementById("roomId");
+                    dropdown.innerHTML =
+                        '<option value="">Select Room</option>';
+
+                    if (!Array.isArray(data)) {
+                        throw new Error("Unable to load rooms");
+                    }
+
+                    data.forEach(room => {
+
+                        const option = document.createElement("option");
+                        option.value = room.id;
+                        option.textContent = room.number + " - " + room.type;
+
+                        dropdown.appendChild(option);
+                    });
+
+                })
+                .catch(error => {
+                    document.getElementById("roomId").innerHTML =
+                        '<option value="">Unable to load rooms</option>';
+                    console.error(error);
+                });
+        }
+
+
+        // LOAD ALLOCATIONS
+        async function loadAllocations() {
+
+            const table = document.getElementById("allocationData");
+
+            try {
+
+                const response = await fetch(
+                    "http://localhost:8080/api/allocations"
+                );
+
+                const allocations = await response.json();
+
+                if (!response.ok || !Array.isArray(allocations)) {
+                    throw new Error("Unable to load allocations");
+                }
+
+                table.innerHTML = "";
+
+                if (allocations.length === 0) {
+                    table.innerHTML =
+                        '<tr><td colspan="6">No allocations found</td></tr>';
+                    return;
+                }
+
+                allocations.forEach(item => {
+
+                    const row = document.createElement("tr");
+
+                    [
+                        item.id,
+                        item.student,
+                        item.room,
+                        item.allocationDate,
+                        item.checkoutDate || "-",
+                        item.status
+                    ].forEach(value => {
+
+                        const cell = document.createElement("td");
+                        cell.textContent = value ?? "";
+                        row.appendChild(cell);
+
+                    });
+
+                    table.appendChild(row);
+                });
+
+            } catch (error) {
+
+                table.innerHTML =
+                    '<tr><td colspan="6">Unable to load allocations</td></tr>';
+
+                console.error(error);
+            }
+        }
+
+
+        // ADD NEW ALLOCATION
+        document.getElementById("allocationForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                const formData = new URLSearchParams();
+
+                formData.append(
+                    "studentId",
+                    document.getElementById("studentId").value
+                );
+
+                formData.append(
+                    "roomId",
+                    document.getElementById("roomId").value
+                );
+
+                formData.append(
+                    "allocationDate",
+                    document.getElementById("allocationDate").value
+                );
+
+                formData.append(
+                    "checkoutDate",
+                    document.getElementById("checkoutDate").value
+                );
+
+                formData.append(
+                    "status",
+                    document.getElementById("status").value
+                );
+
+                const message = document.getElementById("message");
+
+                fetch("http://localhost:8080/api/add-allocation", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: formData
+                })
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    message.style.color = "green";
+                    message.textContent = "Allocation Added Successfully!";
+
+                    document.getElementById("allocationForm").reset();
+
+                    loadAllocations();
+
+                })
+
+                .catch(error => {
+
+                    message.style.color = "red";
+                    message.textContent = "Allocation Addition Failed!";
+
+                    console.error(error);
+                });
+
+            });
+
+
+        // INITIAL LOAD
+        loadStudents();
+        loadRooms();
+        loadAllocations();
+
+    </script>
+
+</body>
+</html>
