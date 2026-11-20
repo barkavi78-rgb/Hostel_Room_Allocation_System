@@ -1,0 +1,12 @@
+HOSTEL ROOM ALLOCATION SYSTEM
+
+Total Lines of Code (LOC):  1950
+
+Files Included:
+1. Java
+2. HTML
+3. CSS
+4. JavaScript
+5. Python
+6. SQL
+7. Markdown

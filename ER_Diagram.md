@@ -1,9 +1,5 @@
-
+```mermaid
 erDiagram
-    STUDENT ||--o{ ROOM_ALLOCATION : has
-    ROOM ||--o{ ROOM_ALLOCATION : assigned
-    STUDENT ||--o{ FEE : pays
-
     STUDENT {
         int student_id PK
         string student_name
@@ -38,3 +34,7 @@ erDiagram
         date payment_date
         string payment_status
     }
+
+    STUDENT ||--o{ ROOM_ALLOCATION : receives
+    ROOM ||--o{ ROOM_ALLOCATION : assigned
+    STUDENT ||--o{ FEE : pays

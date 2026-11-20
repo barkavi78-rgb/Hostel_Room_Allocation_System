@@ -17,9 +17,8 @@ public class DBConnection {
             System.out.println("Database Connected Successfully!");
 
         } catch (Exception e) {
-            System.out.println("Connection Failed: " + e.getMessage());
-        }
-
+    System.out.println("Connection Failed: " + e.getMessage());
+}
         return con;
     }
 
